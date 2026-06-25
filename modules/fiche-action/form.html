@@ -1,0 +1,459 @@
+<!-- modules/fiche-action/form.html -->
+<!-- Chargé dynamiquement par router.js dans #app-content -->
+
+<div id="send-result" class="send-result"></div>
+
+<div class="page-header">
+  <button class="back-btn" onclick="Router.showHome()">← Accueil</button>
+  <div>
+    <h2>📋 Fiche d'action — Demande d'autorisation</h2>
+  </div>
+</div>
+
+<!-- Barre d'étapes -->
+<div class="steps-bar">
+  <button class="step-btn active" id="step-btn-1" onclick="FicheAction.goToStep(1)">1. Informations générales</button>
+  <button class="step-btn"        id="step-btn-2" onclick="FicheAction.goToStep(2)">2. Volet pédagogique</button>
+  <button class="step-btn"        id="step-btn-3" onclick="FicheAction.goToStep(3)">3. Compétences & évaluation</button>
+  <button class="step-btn"        id="step-btn-4" onclick="FicheAction.goToStep(4)">4. Volet financier</button>
+</div>
+
+<!-- ══ ÉTAPE 1 : Informations générales ══ -->
+<div id="step-1" class="step-content">
+
+  <div class="form-section">
+    <div class="form-section-header">📌 Type d'action</div>
+    <div class="form-section-body">
+      <div class="field-label">Cochez le ou les types <span class="req">*</span></div>
+      <div class="type-pills">
+        <div class="type-pill"><input type="checkbox" id="type-projet"><label for="type-projet">Projet</label></div>
+        <div class="type-pill"><input type="checkbox" id="type-sortie"><label for="type-sortie">Sortie</label></div>
+        <div class="type-pill"><input type="checkbox" id="type-intervention"><label for="type-intervention">Intervention</label></div>
+        <div class="type-pill"><input type="checkbox" id="type-autres"><label for="type-autres">Autres</label></div>
+      </div>
+      <div class="field-group" id="type-autres-field" style="display:none;margin-top:.75rem">
+        <label class="field-label">Préciser :</label>
+        <input type="text" class="field-input" id="type-autres-texte" placeholder="Précisez le type d'action">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">🏷️ Identification</div>
+    <div class="form-section-body">
+      <div class="field-group">
+        <label class="field-label" for="intitule">Intitulé de l'action <span class="req">*</span></label>
+        <input type="text" class="field-input" id="intitule" placeholder="Ex : Visite du Mémorial de la Shoah">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="destination">Destination (adresse exacte si applicable)</label>
+        <input type="text" class="field-input" id="destination" placeholder="Ex : 17 rue Geoffroy l'Asnier, 75004 Paris">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="responsable">Nom du responsable de l'action <span class="req">*</span></label>
+        <input type="text" class="field-input" id="responsable" placeholder="Nom et prénom">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="classes">Classes ou groupes concernés <span class="req">*</span></label>
+        <input type="text" class="field-input" id="classes" placeholder="Ex : 4ème A, 4ème B — si groupe, fournir la liste des élèves">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">🕐 Date et horaire</div>
+    <div class="form-section-body">
+      <div class="row row-2">
+        <div class="field-group">
+          <label class="field-label">Date de départ <span class="req">*</span></label>
+          <input type="date" class="field-input" id="date-depart">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Heure de départ <span class="req">*</span></label>
+          <input type="time" class="field-input" id="heure-depart">
+        </div>
+      </div>
+      <div class="row row-2">
+        <div class="field-group">
+          <label class="field-label">Date de retour</label>
+          <input type="date" class="field-input" id="date-retour">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Heure de retour</label>
+          <input type="time" class="field-input" id="heure-retour">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">📝 Description de l'action</div>
+    <div class="form-section-body">
+      <textarea class="field-textarea" id="description" rows="4" placeholder="Décrivez l'action : contexte, déroulé, objectifs généraux…"></textarea>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">👥 Accompagnateurs</div>
+    <div class="form-section-body">
+      <div class="field-label" style="margin-bottom:.75rem">Professeurs accompagnateurs & impact sur les cours</div>
+      <table class="acc-table">
+        <thead>
+          <tr>
+            <th style="width:40%">Nom de l'accompagnateur</th>
+            <th style="width:35%">Classes / groupes (cours annulés)</th>
+            <th style="width:25%">Heures</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><input type="text" placeholder="Nom Prénom" id="acc1-nom"></td><td><input type="text" id="acc1-classes" placeholder="Ex : 5ème A"></td><td><input type="text" id="acc1-heures" placeholder="Ex : 2h"></td></tr>
+          <tr><td><input type="text" placeholder="Nom Prénom" id="acc2-nom"></td><td><input type="text" id="acc2-classes"></td><td><input type="text" id="acc2-heures"></td></tr>
+          <tr><td><input type="text" placeholder="Nom Prénom" id="acc3-nom"></td><td><input type="text" id="acc3-classes"></td><td><input type="text" id="acc3-heures"></td></tr>
+          <tr><td><input type="text" placeholder="Nom Prénom" id="acc4-nom"></td><td><input type="text" id="acc4-classes"></td><td><input type="text" id="acc4-heures"></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:1rem" class="check-group">
+        <div>
+          <label class="check-item"><input type="checkbox" id="autres-personnels"><span>Autres personnels :</span></label>
+          <input type="text" class="field-input" id="autres-personnels-texte" placeholder="Précisez" style="margin-top:.35rem;margin-left:1.5rem;width:calc(100% - 1.5rem)">
+        </div>
+        <div>
+          <label class="check-item"><input type="checkbox" id="aed"><span>AED (voir CPE) :</span></label>
+          <input type="text" class="field-input" id="aed-texte" placeholder="Précisez" style="margin-top:.35rem;margin-left:1.5rem;width:calc(100% - 1.5rem)">
+        </div>
+        <div>
+          <label class="check-item"><input type="checkbox" id="parents"><span>Parents d'élèves :</span></label>
+          <input type="text" class="field-input" id="parents-texte" placeholder="Précisez" style="margin-top:.35rem;margin-left:1.5rem;width:calc(100% - 1.5rem)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <div></div>
+    <button class="btn btn-primary" onclick="FicheAction.goToStep(2)">Suite : Volet pédagogique →</button>
+  </div>
+</div>
+
+<!-- ══ ÉTAPE 2 : Volet pédagogique ══ -->
+<div id="step-2" class="step-content" style="display:none">
+
+  <div class="form-section">
+    <div class="form-section-header">🎯 Axes & objectifs du projet d'établissement</div>
+    <div class="form-section-body" id="axes-container">
+      <!-- Généré par fiche-action.js depuis APP_CONFIG.axes -->
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">🗂️ Type d'action pédagogique</div>
+    <div class="form-section-body">
+
+      <div class="domaine-block">
+        <div class="domaine-header">
+          <input type="checkbox" id="parcours-ed" style="width:16px;height:16px;accent-color:var(--blue)">
+          <label for="parcours-ed" style="font-weight:700;font-size:13px;cursor:pointer">Parcours éducatif</label>
+        </div>
+        <div class="domaine-body">
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" id="parcours-avenir"><span>Parcours Avenir (orientation et découverte du monde professionnel)</span></label>
+            <label class="check-item"><input type="checkbox" id="parcours-artistique"><span>Parcours d'Éducation Artistique et Culturelle</span></label>
+            <label class="check-item"><input type="checkbox" id="parcours-sante"><span>Parcours Éducatif de Santé</span></label>
+            <label class="check-item"><input type="checkbox" id="parcours-citoyen"><span>Parcours Citoyen de l'élève</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="domaine-block">
+        <div class="domaine-header">
+          <input type="checkbox" id="accomp-perso" style="width:16px;height:16px;accent-color:var(--blue)">
+          <label for="accomp-perso" style="font-weight:700;font-size:13px;cursor:pointer">Accompagnement personnalisé</label>
+        </div>
+        <div class="domaine-body">
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" id="accomp-fragiles"><span>Pour les plus fragiles</span></label>
+            <label class="check-item"><input type="checkbox" id="accomp-performants"><span>Pour les plus performants</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="domaine-block">
+        <div class="domaine-header">
+          <input type="checkbox" id="epi" style="width:16px;height:16px;accent-color:var(--blue)">
+          <label for="epi" style="font-weight:700;font-size:13px;cursor:pointer">Enseignements Pratiques Interdisciplinaires (EPI)</label>
+        </div>
+        <div class="domaine-body">
+          <div class="field-label" style="margin-bottom:.5rem">Disciplines concernées :</div>
+          <div class="check-grid">
+            <label class="check-item"><input type="checkbox" id="disc-arts-plast"><span>Arts plastiques</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-anglais"><span>Anglais</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-educ-mus"><span>Éducation musicale</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-espagnol"><span>Espagnol</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-eps"><span>EPS</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-allemand"><span>Allemand</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-emc"><span>EMC</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-maths"><span>Mathématiques</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-francais"><span>Français</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-physchim"><span>Physique-chimie</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-hist-arts"><span>Histoire des arts</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-svt"><span>SVT</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-histgeo"><span>Histoire-Géographie</span></label>
+            <label class="check-item"><input type="checkbox" id="disc-techno"><span>Technologie</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">✏️ Objectif(s) pédagogique(s)</div>
+    <div class="form-section-body">
+      <textarea class="field-textarea" id="objectifs-peda" rows="4" placeholder="Indiquez le ou les objectifs pédagogiques retenus…"></textarea>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-secondary" onclick="FicheAction.goToStep(1)">← Retour</button>
+    <button class="btn btn-primary"   onclick="FicheAction.goToStep(3)">Suite : Compétences & évaluation →</button>
+  </div>
+</div>
+
+<!-- ══ ÉTAPE 3 : Compétences & évaluation ══ -->
+<div id="step-3" class="step-content" style="display:none">
+
+  <div class="form-section">
+    <div class="form-section-header">🎓 Compétences visées — Socle commun</div>
+    <div class="form-section-body">
+
+      <div class="domaine-block">
+        <div class="domaine-header">
+          <input type="checkbox" id="dom1" style="width:16px;height:16px;accent-color:var(--blue)">
+          <label for="dom1" style="font-weight:700;font-size:13px;cursor:pointer">Domaine 1 — Les langages pour penser et communiquer</label>
+        </div>
+        <div class="domaine-body">
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" id="dom1-fr"><span>Comprendre, s'exprimer en utilisant la langue française à l'oral et à l'écrit</span></label>
+            <label class="check-item"><input type="checkbox" id="dom1-le"><span>Comprendre, s'exprimer en utilisant la langue étrangère</span></label>
+            <label class="check-item"><input type="checkbox" id="dom1-maths"><span>Comprendre, s'exprimer en utilisant les langages mathématiques, scientifiques et informatiques</span></label>
+            <label class="check-item"><input type="checkbox" id="dom1-arts"><span>Comprendre, s'exprimer en utilisant les langages des arts et du corps</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="domaine-block">
+        <div class="domaine-header">
+          <input type="checkbox" id="dom2" style="width:16px;height:16px;accent-color:var(--blue)">
+          <label for="dom2" style="font-weight:700;font-size:13px;cursor:pointer">Domaine 2 — Méthodes et outils pour apprendre</label>
+        </div>
+      </div>
+      <div class="domaine-block">
+        <div class="domaine-header">
+          <input type="checkbox" id="dom3" style="width:16px;height:16px;accent-color:var(--blue)">
+          <label for="dom3" style="font-weight:700;font-size:13px;cursor:pointer">Domaine 3 — La formation de la personne et du citoyen</label>
+        </div>
+      </div>
+      <div class="domaine-block">
+        <div class="domaine-header">
+          <input type="checkbox" id="dom4" style="width:16px;height:16px;accent-color:var(--blue)">
+          <label for="dom4" style="font-weight:700;font-size:13px;cursor:pointer">Domaine 4 — Les systèmes naturels et les systèmes techniques</label>
+        </div>
+      </div>
+      <div class="domaine-block">
+        <div class="domaine-header">
+          <input type="checkbox" id="dom5" style="width:16px;height:16px;accent-color:var(--blue)">
+          <label for="dom5" style="font-weight:700;font-size:13px;cursor:pointer">Domaine 5 — Les représentations du monde et l'activité humaine</label>
+        </div>
+      </div>
+
+      <div class="info-box" style="margin-top:1rem">
+        💡 Référence : Compétences du socle Cycle 3 et Cycle 4 (Éduscol)
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">📊 Évaluation de l'action (4 critères max.)</div>
+    <div class="form-section-body">
+      <div class="info-box">Établir au maximum 4 critères simples. La colonne "Valeur mesurée" est à renseigner au terme de l'action.</div>
+      <table class="eval-table">
+        <thead>
+          <tr>
+            <th class="label-cell">N°</th>
+            <th>Critère d'évaluation</th>
+            <th style="width:180px">Valeur cible</th>
+            <th style="width:180px">Valeur mesurée</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="label-cell">1</td><td><input type="text" placeholder="Ex : Nombre d'élèves visés" id="crit1"></td><td><input type="text" placeholder="Ex : 30 élèves" id="crit1-cible"></td><td><input type="text" placeholder="Après l'action" id="crit1-mesure"></td></tr>
+          <tr><td class="label-cell">2</td><td><input type="text" id="crit2"></td><td><input type="text" id="crit2-cible"></td><td><input type="text" id="crit2-mesure"></td></tr>
+          <tr><td class="label-cell">3</td><td><input type="text" id="crit3"></td><td><input type="text" id="crit3-cible"></td><td><input type="text" id="crit3-mesure"></td></tr>
+          <tr><td class="label-cell">4</td><td><input type="text" id="crit4"></td><td><input type="text" id="crit4-cible"></td><td><input type="text" id="crit4-mesure"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">📣 Communication</div>
+    <div class="form-section-body">
+      <div class="field-group">
+        <div class="field-label">Compte rendu réalisé par :</div>
+        <div class="check-group" style="margin-top:.5rem">
+          <div>
+            <label class="check-item"><input type="checkbox" id="cr-eleves"><span>Élèves (noms) :</span></label>
+            <input type="text" class="field-input" id="cr-eleves-noms" placeholder="Noms des élèves" style="margin-top:.35rem;margin-left:1.5rem;width:calc(100% - 1.5rem)">
+          </div>
+          <div>
+            <label class="check-item"><input type="checkbox" id="cr-profs"><span>Professeurs (noms) :</span></label>
+            <input type="text" class="field-input" id="cr-profs-noms" placeholder="Noms des professeurs" style="margin-top:.35rem;margin-left:1.5rem;width:calc(100% - 1.5rem)">
+          </div>
+          <div>
+            <label class="check-item"><input type="checkbox" id="cr-autres-perso"><span>Autres personnels (noms) :</span></label>
+            <input type="text" class="field-input" id="cr-autres-perso-noms" placeholder="Noms" style="margin-top:.35rem;margin-left:1.5rem;width:calc(100% - 1.5rem)">
+          </div>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Supports :</div>
+        <div class="check-grid" style="margin-top:.5rem">
+          <label class="check-item"><input type="checkbox" id="sup-texte"><span>Texte</span></label>
+          <label class="check-item"><input type="checkbox" id="sup-video"><span>Vidéo</span></label>
+          <label class="check-item"><input type="checkbox" id="sup-photo"><span>Photo</span></label>
+          <label class="check-item"><input type="checkbox" id="sup-audio"><span>Enregistrement audio</span></label>
+        </div>
+        <input type="text" class="field-input" id="sup-autres" placeholder="Autres supports…" style="margin-top:.5rem">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Publication :</div>
+        <div class="check-grid" style="margin-top:.5rem">
+          <label class="check-item"><input type="checkbox" id="pub-site"><span>Site du collège</span></label>
+          <label class="check-item"><input type="checkbox" id="pub-oze"><span>Oze</span></label>
+        </div>
+        <input type="text" class="field-input" id="pub-autres" placeholder="Autres canaux…" style="margin-top:.5rem">
+      </div>
+      <div class="warn-box">⚠️ Pensez à la protection des données personnelles des élèves (RGPD)</div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-secondary" onclick="FicheAction.goToStep(2)">← Retour</button>
+    <button class="btn btn-primary"   onclick="FicheAction.goToStep(4)">Suite : Volet financier →</button>
+  </div>
+</div>
+
+<!-- ══ ÉTAPE 4 : Volet financier ══ -->
+<div id="step-4" class="step-content" style="display:none">
+
+  <div class="form-section">
+    <div class="form-section-header">💶 Dépenses éventuelles</div>
+    <div class="form-section-body">
+      <div class="row row-2">
+        <div class="field-group">
+          <label class="field-label">Budget total (€)</label>
+          <input type="number" class="field-input" id="budget" placeholder="0">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Détail des dépenses</label>
+          <input type="text" class="field-input" id="budget-detail" placeholder="Ex : Entrées musée, transport…">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Transport :</div>
+        <div class="type-pills" style="margin-top:.5rem">
+          <div class="type-pill"><input type="checkbox" id="transport-oui"><label for="transport-oui">Oui</label></div>
+          <div class="type-pill"><input type="checkbox" id="transport-non"><label for="transport-non">Non</label></div>
+          <div class="type-pill"><input type="checkbox" id="transport-ticket-t"><label for="transport-ticket-t">Ticket T</label></div>
+          <div class="type-pill"><input type="checkbox" id="transport-rer"><label for="transport-rer">Ticket RER</label></div>
+        </div>
+        <input type="text" class="field-input" id="rer-trajet" placeholder="RER : préciser trajet (de … à …)" style="margin-top:.5rem">
+      </div>
+      <table class="transport-table">
+        <thead>
+          <tr><th></th><th>Ayant une carte de transport</th><th>N'ayant pas de carte de transport</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Nombre d'élèves</td><td><input type="number" id="eleves-avec-carte" placeholder="0"></td><td><input type="number" id="eleves-sans-carte" placeholder="0"></td></tr>
+          <tr><td>Nombre d'accompagnateurs</td><td><input type="number" id="acc-avec-carte" placeholder="0"></td><td><input type="number" id="acc-sans-carte" placeholder="0"></td></tr>
+          <tr><td><strong>Total</strong></td><td><input type="number" id="total-avec-carte" placeholder="0"></td><td><input type="number" id="total-sans-carte" placeholder="0"></td></tr>
+        </tbody>
+      </table>
+      <div class="field-group" style="margin-top:1rem">
+        <label class="field-label">Intervention d'un partenaire (montant du devis €)</label>
+        <input type="number" class="field-input" id="partenaire-montant" placeholder="0">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">🏦 Financements</div>
+    <div class="form-section-body">
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox" id="fin-cd"><span>Conseil Départemental</span></label>
+        <label class="check-item"><input type="checkbox" id="fin-ermes"><span>Ermès</span></label>
+        <label class="check-item"><input type="checkbox" id="fin-premis"><span>Premis</span></label>
+        <label class="check-item"><input type="checkbox" id="fin-college"><span>Collège (DGF)</span></label>
+        <label class="check-item"><input type="checkbox" id="fin-rectorat"><span>Rectorat / État</span></label>
+        <label class="check-item"><input type="checkbox" id="fin-adage"><span>Adage</span></label>
+      </div>
+      <div class="row row-2" style="margin-top:.75rem">
+        <div class="field-group">
+          <label class="field-label">Autres financements :</label>
+          <input type="text" class="field-input" id="fin-autres1" placeholder="Précisez">
+        </div>
+        <div class="field-group">
+          <label class="field-label">&nbsp;</label>
+          <input type="text" class="field-input" id="fin-autres2" placeholder="Précisez">
+        </div>
+      </div>
+      <label class="check-item" style="margin-top:.75rem">
+        <input type="checkbox" id="fin-familles">
+        <span style="font-weight:600;color:var(--accent)">Participation financière des familles (passage obligatoire en CA)</span>
+      </label>
+      <div class="info-box" style="margin-top:.75rem">Une dépense nécessite une entrevue préalable avec l'adjoint gestionnaire.</div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">🔒 Assurance</div>
+    <div class="form-section-body">
+      <div class="info-box" style="line-height:1.7">
+        <strong>Sortie obligatoire :</strong> assurance scolaire facultative mais vivement recommandée.<br>
+        <strong>Sortie facultative :</strong> assurance scolaire obligatoire.
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">✍️ Visas préalables</div>
+    <div class="form-section-body">
+      <div class="info-box">Les visas seront apposés sur le document imprimé remis à la direction.</div>
+      <div class="row row-3" style="margin-top:.75rem">
+        <div class="field-group">
+          <label class="field-label">Responsable de l'action</label>
+          <div style="border:1px solid var(--border);border-radius:6px;height:60px;background:var(--cream)"></div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">CPE</label>
+          <div style="border:1px solid var(--border);border-radius:6px;height:60px;background:var(--cream)"></div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Gestionnaire</label>
+          <div style="border:1px solid var(--border);border-radius:6px;height:60px;background:var(--cream)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-secondary" onclick="FicheAction.goToStep(3)">← Retour</button>
+    <div class="nav-btns-right">
+      <button class="btn btn-accent"   onclick="FicheAction.generatePDF(false)">⬇ Télécharger le PDF</button>
+      <button class="btn btn-success"  onclick="FicheAction.generatePDF(true)">📧 Envoyer à la direction</button>
+    </div>
+  </div>
+
+  <div class="form-footer">
+    Envoyé à <strong>ce.0921778h@ac-versailles.fr</strong> · Collège Joliot-Curie — 2bis Avenue de Stalingrad, 92220 Bagneux
+  </div>
+</div>

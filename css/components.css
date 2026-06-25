@@ -1,0 +1,188 @@
+/* ═══════════════════════════════════════════════════
+   components.css — Composants formulaires partagés
+   Utilisés par tous les modules
+   ═══════════════════════════════════════════════════ */
+
+/* ── EN-TÊTE DE PAGE MODULE ── */
+.page-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+.page-header h2 { font-size: 20px; font-weight: 700; color: var(--blue); }
+.back-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .4rem .8rem;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--slate-mid);
+  transition: all .15s;
+  font-family: var(--font);
+}
+.back-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ── BARRE D'ÉTAPES ── */
+.steps-bar { display: flex; margin-bottom: 2rem; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+.step-btn {
+  flex: 1;
+  padding: .6rem .5rem;
+  background: var(--white);
+  border: none;
+  border-right: 1px solid var(--border);
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--slate-mid);
+  transition: all .15s;
+  text-align: center;
+  line-height: 1.3;
+  font-family: var(--font);
+}
+.step-btn:last-child { border-right: none; }
+.step-btn.active { background: var(--blue); color: white; font-weight: 600; }
+.step-btn.done   { background: var(--blue-light); color: var(--blue); }
+
+/* ── SECTIONS ── */
+.form-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1.25rem; overflow: hidden; }
+.form-section-header {
+  background: var(--blue);
+  color: white;
+  padding: .6rem 1rem;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.form-section-body { padding: 1.25rem; }
+
+/* ── CHAMPS ── */
+.field-group { margin-bottom: 1rem; }
+.field-group:last-child { margin-bottom: 0; }
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate);
+  margin-bottom: .35rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.field-label .req { color: var(--accent); margin-left: 2px; }
+.field-input, .field-select, .field-textarea {
+  width: 100%;
+  padding: .55rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--slate);
+  background: var(--white);
+  transition: border .15s;
+}
+.field-input:focus, .field-select:focus, .field-textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,79,138,.1);
+}
+.field-textarea { resize: vertical; min-height: 80px; }
+.field-hint { font-size: 11px; color: var(--slate-mid); margin-top: .3rem; }
+
+/* ── GRILLES ── */
+.row   { display: grid; gap: 1rem; }
+.row-2 { grid-template-columns: 1fr 1fr; }
+.row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* ── CASES À COCHER ── */
+.check-group { display: flex; flex-direction: column; gap: .45rem; }
+.check-item  { display: flex; align-items: flex-start; gap: .5rem; font-size: 13.5px; cursor: pointer; }
+.check-item input[type="checkbox"] { margin-top: 2px; width: 15px; height: 15px; accent-color: var(--blue); flex-shrink: 0; }
+.check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; }
+
+/* ── PILLS (type d'action) ── */
+.type-pills { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+.type-pill input[type="checkbox"] { display: none; }
+.type-pill label {
+  padding: .4rem .9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--slate-mid);
+  transition: all .15s;
+  font-family: var(--font);
+}
+.type-pill input[type="checkbox"]:checked + label {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+  font-weight: 600;
+}
+
+/* ── BLOCS DOMAINE (accordéon visuel) ── */
+.domaine-block { border: 1px solid var(--border); border-radius: 6px; margin-bottom: .75rem; overflow: hidden; }
+.domaine-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem .85rem;
+  background: var(--blue-pale);
+  border-bottom: 1px solid var(--border);
+}
+.domaine-body { padding: .6rem .85rem; }
+
+/* ── TABLEAUX ── */
+.acc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.acc-table th { background: var(--blue-light); color: var(--blue); padding: .5rem .75rem; text-align: left; font-size: 11px; font-weight: 700; border: 1px solid var(--border); }
+.acc-table td { border: 1px solid var(--border); padding: 0; }
+.acc-table td input { width: 100%; border: none; padding: .5rem .75rem; font-family: var(--font); font-size: 13px; background: transparent; }
+.acc-table td input:focus { outline: none; background: var(--blue-pale); }
+.acc-table tr:nth-child(even) { background: var(--cream); }
+
+.eval-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.eval-table th { background: var(--blue-light); color: var(--blue); padding: .5rem .75rem; font-size: 11px; font-weight: 700; border: 1px solid var(--border); }
+.eval-table td { border: 1px solid var(--border); padding: 0; }
+.eval-table td input { width: 100%; border: none; padding: .5rem .75rem; font-family: var(--font); font-size: 13px; background: transparent; }
+.eval-table td input:focus { outline: none; background: var(--blue-pale); }
+.eval-table td.label-cell { padding: .5rem .75rem; font-size: 12px; font-weight: 600; background: var(--cream); color: var(--slate-mid); width: 80px; }
+
+.transport-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: .75rem; }
+.transport-table th, .transport-table td { border: 1px solid var(--border); padding: .5rem .75rem; text-align: center; }
+.transport-table th { background: var(--blue-light); color: var(--blue); font-weight: 700; font-size: 11px; }
+.transport-table td:first-child { text-align: left; font-weight: 600; }
+.transport-table td input { width: 80px; border: none; text-align: center; font-size: 13px; background: transparent; font-family: var(--font); }
+.transport-table td input:focus { outline: none; background: var(--blue-pale); border-radius: 4px; }
+
+/* ── BOUTONS ── */
+.btn { padding: .6rem 1.4rem; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; font-family: var(--font); }
+.btn-primary   { background: var(--blue);    color: white; }
+.btn-primary:hover   { background: var(--blue-mid); }
+.btn-secondary { background: var(--white);   color: var(--slate); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--blue); color: var(--blue); }
+.btn-accent    { background: var(--accent);  color: white; }
+.btn-accent:hover    { background: #cc4e14; }
+.btn-success   { background: var(--success); color: white; }
+.btn-success:hover   { background: #15803d; }
+
+/* ── NAVIGATION BAS DE PAGE ── */
+.nav-btns {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.nav-btns-right { display: flex; gap: .75rem; }
+
+/* ── BOÎTES D'INFO ── */
+.info-box { background: var(--blue-pale); border: 1px solid #bfdbfe; border-radius: 6px; padding: .75rem 1rem; font-size: 12.5px; color: var(--blue); margin-bottom: 1rem; }
+.warn-box  { background: #fef9c3; border: 1px solid #fde047; border-radius: 6px; padding: .75rem 1rem; font-size: 12.5px; color: #854d0e; }
+
+/* ── PIED DE FORMULAIRE ── */
+.form-footer { font-size: 11px; color: var(--slate-mid); text-align: center; padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--border); }
+
+/* ── MOBILE ── */
+@media (max-width: 700px) {
+  .row-2, .row-3 { grid-template-columns: 1fr; }
+  .check-grid { grid-template-columns: 1fr; }
+  .steps-bar  { flex-direction: column; }
+  .step-btn   { border-right: none; border-bottom: 1px solid var(--border); }
+}

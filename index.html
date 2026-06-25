@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collège Joliot-Curie — Outils numériques</title>
+
+  <!-- Styles partagés -->
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- Bibliothèques externes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- EmailJS — décommenter une fois configuré dans js/config.js -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script> -->
+
+  <!-- Configuration (doit être chargée en premier) -->
+  <script src="js/config.js"></script>
+
+  <!-- Services partagés -->
+  <script src="js/pdf-generator.js"></script>
+  <script src="js/email.js"></script>
+
+  <!-- Router (doit être chargé après les services) -->
+  <script src="js/router.js"></script>
+</head>
+<body>
+
+  <!-- ── TOPBAR ── -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      Collège<br><span>Joliot-Curie</span>
+    </div>
+    <div class="topbar-title">Espace numérique — Outils de direction</div>
+    <div class="topbar-badge">Bagneux · 92</div>
+  </header>
+
+  <div class="layout">
+
+    <!-- ── SIDEBAR (générée depuis config.js) ── -->
+    <nav class="sidebar" id="sidebar">
+
+      <div class="sidebar-section">Pédagogique</div>
+      <div class="sidebar-item" data-page="home" onclick="Router.showHome()">
+        <span class="sidebar-icon">🏠</span> Accueil
+      </div>
+      <div class="sidebar-item" data-module="fiche-action" onclick="Router.navigate('fiche-action')">
+        <span class="sidebar-icon">📋</span> Fiche d'action
+      </div>
+      <div class="sidebar-item disabled" data-module="sortie-scolaire">
+        <span class="sidebar-icon">🚌</span> Sorties scolaires
+        <span class="sidebar-soon">Bientôt</span>
+      </div>
+      <div class="sidebar-item disabled" data-module="reservation">
+        <span class="sidebar-icon">📅</span> Réservation salles
+        <span class="sidebar-soon">Bientôt</span>
+      </div>
+
+      <hr class="sidebar-divider">
+      <div class="sidebar-section">Administratif</div>
+      <div class="sidebar-item disabled" data-module="travaux">
+        <span class="sidebar-icon">🔧</span> Demandes travaux
+        <span class="sidebar-soon">Bientôt</span>
+      </div>
+      <div class="sidebar-item disabled" data-module="budget">
+        <span class="sidebar-icon">📊</span> Budget / crédits
+        <span class="sidebar-soon">Bientôt</span>
+      </div>
+      <div class="sidebar-item disabled" data-module="securite">
+        <span class="sidebar-icon">🛡️</span> Registres sécurité
+        <span class="sidebar-soon">Bientôt</span>
+      </div>
+
+      <hr class="sidebar-divider">
+      <div class="sidebar-section">RH / Personnel</div>
+      <div class="sidebar-item disabled" data-module="absences">
+        <span class="sidebar-icon">📝</span> Demandes absences
+        <span class="sidebar-soon">Bientôt</span>
+      </div>
+      <div class="sidebar-item disabled" data-module="materiel">
+        <span class="sidebar-icon">🔑</span> Prêt de matériel
+        <span class="sidebar-soon">Bientôt</span>
+      </div>
+
+    </nav>
+
+    <!-- ── ZONE PRINCIPALE — injectée par le router ── -->
+    <main class="main" id="app-content">
+      <!-- Le contenu est chargé dynamiquement par Router -->
+    </main>
+
+  </div>
+
+  <!-- Initialisation du router au chargement -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => Router.init());
+  </script>
+
+</body>
+</html>
