@@ -20,11 +20,15 @@ const APP_CONFIG = {
     'ce.0921778h@ac-versailles.fr',
   ],
 
-  // EmailJS — à renseigner après inscription sur emailjs.com
-  emailjs: {
-    publicKey:  'VOTRE_PUBLIC_KEY',
-    serviceId:  'VOTRE_SERVICE_ID',
-    templateId: 'VOTRE_TEMPLATE_ID',
+  // Formspree — service d'envoi de mail gratuit, sans serveur
+  // ACTIVATION (5 minutes) :
+  //   1. Aller sur https://formspree.io → créer un compte gratuit
+  //   2. "New Form" → nommer "Fiche action Joliot" → copier l'endpoint
+  //   3. Remplacer la valeur ci-dessous par votre URL
+  //      Ex : 'https://formspree.io/f/xpzgkwqr'
+  // Plan gratuit : 50 soumissions/mois (largement suffisant)
+  formspree: {
+    endpoint: 'VOTRE_ENDPOINT_FORMSPREE',
   },
 
   // Axes du projet d'établissement (modifiables chaque année)
@@ -57,12 +61,12 @@ const APP_CONFIG = {
 
   // Modules disponibles — active: true/false pour les afficher
   modules: [
-    { id: 'fiche-action',     label: 'Fiche d\'action', icon: '📋', active: true,  soon: false, categorie: 'pedagogique' },
-    { id: 'sortie-scolaire',  label: 'Sorties scolaires', icon: '🚌', active: false, soon: true,  categorie: 'pedagogique' },
-    { id: 'reservation',      label: 'Réservation salles', icon: '📅', active: false, soon: true,  categorie: 'pedagogique' },
-    { id: 'travaux',          label: 'Demandes travaux', icon: '🔧', active: false, soon: true,  categorie: 'administratif' },
-    { id: 'budget',           label: 'Budget / crédits', icon: '📊', active: false, soon: true,  categorie: 'administratif' },
-    { id: 'absences',         label: 'Demandes absences', icon: '📝', active: false, soon: true,  categorie: 'rh' },
-    { id: 'materiel',         label: 'Prêt de matériel', icon: '🔑', active: false, soon: true,  categorie: 'rh' },
+    { id: 'fiche-action',    label: "Fiche d'action",    icon: '📋', active: true,  soon: false, categorie: 'pedagogique'  },
+    { id: 'sortie-scolaire', label: 'Sorties scolaires',  icon: '🚌', active: false, soon: true,  categorie: 'pedagogique'  },
+    { id: 'reservation',     label: 'Réservation salles', icon: '📅', active: false, soon: true,  categorie: 'pedagogique'  },
+    { id: 'travaux',         label: 'Demandes travaux',   icon: '🔧', active: false, soon: true,  categorie: 'administratif'},
+    { id: 'budget',          label: 'Budget / crédits',   icon: '📊', active: false, soon: true,  categorie: 'administratif'},
+    { id: 'absences',        label: 'Demandes absences',  icon: '📝', active: false, soon: true,  categorie: 'rh'           },
+    { id: 'materiel',        label: 'Prêt de matériel',   icon: '🔑', active: false, soon: true,  categorie: 'rh'           },
   ],
 };

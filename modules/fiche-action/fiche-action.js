@@ -372,13 +372,13 @@ const FicheAction = (() => {
     const filename = PDFGenerator.makeFilename('fiche_action', d.intitule);
     pdf.save(filename);
 
-    // Envoi mail
+    // Envoi mail via Formspree (données) + PDF téléchargé localement
     if (sendMail) {
       const result = await EmailService.send({
-        fromName:  d.responsable || 'Enseignant',
-        subject:   `Fiche d'action — ${d.intitule || 'Sans titre'}`,
-        body:      `Responsable : ${d.responsable}\nClasses : ${d.classes}\nDate : ${PDFGenerator.formatDate(d.dateDepart)}`,
-        pdfBase64: pdf.toBase64(),
+        fromName: d.responsable || 'Enseignant',
+        subject:  d.intitule || 'Sans titre',
+        body:     `Responsable : ${d.responsable}\nClasses : ${d.classes}\nDate : ${PDFGenerator.formatDate(d.dateDepart)}`,
+        data:     d,
       });
       EmailService.showResult(result.ok, 'send-result');
     }
