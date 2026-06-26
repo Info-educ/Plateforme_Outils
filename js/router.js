@@ -1,5 +1,7 @@
 // ═══════════════════════════════════════════════════
-// router.js — Gestion de la navigation entre modules
+// router.js — Navigation entre modules
+// Charge les modules depuis les <template> intégrés
+// dans index.html — fonctionne en file:// et HTTP.
 // ═══════════════════════════════════════════════════
 
 const Router = (() => {
@@ -8,75 +10,88 @@ const Router = (() => {
   const contentEl  = () => document.getElementById('app-content');
   const sidebarEls = () => document.querySelectorAll('.sidebar-item[data-module]');
 
-  // Charge et injecte un module dans #app-content
+  // ── Navigation vers un module ─────────────────────
+
   async function navigate(moduleId) {
     if (currentModule === moduleId) return;
 
     const mod = APP_CONFIG.modules.find(m => m.id === moduleId);
-    if (!mod) return;
-    if (!mod.active) return; // module non disponible
+    if (!mod || !mod.active) return;
 
-    // Mise à jour sidebar
+    // Sidebar
     sidebarEls().forEach(el => {
       el.classList.toggle('active', el.dataset.module === moduleId);
     });
 
-    // Affichage du loader
+    // Loader
     contentEl().innerHTML = `
       <div class="page-loader">
         <div class="loader-spinner"></div>
         <p>Chargement…</p>
       </div>`;
 
-    try {
-      // Charge le HTML du module
-      const res  = await fetch(`modules/${moduleId}/form.html`);
-      if (!res.ok) throw new Error(`Module introuvable : ${moduleId}`);
-      const html = await res.text();
-      contentEl().innerHTML = html;
-
-      // Charge le JS du module (s'il existe)
-      await loadModuleScript(moduleId);
-
-      currentModule = moduleId;
-
-      // Mise à jour URL sans rechargement
-      history.pushState({ moduleId }, '', `#${moduleId}`);
-
-    } catch (err) {
-      contentEl().innerHTML = `
-        <div class="error-box">
-          <p>⚠️ Impossible de charger le module <strong>${moduleId}</strong>.</p>
-          <p style="font-size:12px;margin-top:.5rem;color:var(--slate-mid)">${err.message}</p>
-        </div>`;
+    // Cherche le template intégré
+    const tpl = document.getElementById(`tpl-${moduleId}`);
+    if (tpl) {
+      // Clone le contenu du template
+      const clone = tpl.content.cloneNode(true);
+      contentEl().innerHTML = '';
+      contentEl().appendChild(clone);
+    } else {
+      // Fallback : tentative fetch (GitHub Pages / serveur HTTP)
+      try {
+        const res  = await fetch(`modules/${moduleId}/form.html`);
+        if (!res.ok) throw new Error(`Module "${moduleId}" introuvable.`);
+        contentEl().innerHTML = await res.text();
+      } catch (err) {
+        contentEl().innerHTML = `
+          <div class="error-box">
+            <p>⚠️ Module <strong>${moduleId}</strong> introuvable.</p>
+            <p style="font-size:12px;margin-top:.5rem;color:var(--slate-mid)">${err.message}</p>
+          </div>`;
+        return;
+      }
     }
+
+    // Charge le JS du module
+    await loadModuleScript(moduleId);
+    currentModule = moduleId;
+    history.pushState({ moduleId }, '', `#${moduleId}`);
   }
 
-  // Charge dynamiquement le script JS d'un module
+  // ── Chargement JS du module ───────────────────────
+
   async function loadModuleScript(moduleId) {
     const scriptId = `module-script-${moduleId}`;
-    // Supprime l'ancien script du même module s'il existe
-    const old = document.getElementById(scriptId);
-    if (old) old.remove();
+    document.getElementById(scriptId)?.remove();
 
     return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.id  = scriptId;
-      script.src = `modules/${moduleId}/${moduleId}.js?v=${Date.now()}`;
+      const script   = document.createElement('script');
+      script.id      = scriptId;
+      script.src     = `modules/${moduleId}/${moduleId}.js?v=${Date.now()}`;
       script.onload  = resolve;
-      script.onerror = resolve; // pas bloquant si pas de JS module
+      script.onerror = () => {
+        // Pas de JS externe — le module est peut-être inline
+        resolve();
+      };
       document.body.appendChild(script);
     });
   }
 
-  // Affiche la page d'accueil (dashboard)
+  // ── Dashboard accueil ─────────────────────────────
+
   function showHome() {
     sidebarEls().forEach(el => el.classList.remove('active'));
     document.querySelector('.sidebar-item[data-page="home"]')?.classList.add('active');
     currentModule = null;
     history.pushState({}, '', '#home');
 
-    const cats = { pedagogique: 'Pédagogique', administratif: 'Administratif', rh: 'RH / Personnel' };
+    const cats = {
+      pedagogique:   'Pédagogique',
+      administratif: 'Administratif',
+      rh:            'RH / Personnel',
+    };
+
     let html = `
       <div class="dashboard-header">
         <h1>Bienvenue sur l'espace numérique du collège</h1>
@@ -102,14 +117,16 @@ const Router = (() => {
     contentEl().innerHTML = html;
   }
 
-  // Gestion du bouton retour navigateur
-  window.addEventListener('popstate', (e) => {
+  // ── Retour navigateur ─────────────────────────────
+
+  window.addEventListener('popstate', () => {
     const hash = location.hash.replace('#', '');
     if (!hash || hash === 'home') showHome();
     else navigate(hash);
   });
 
-  // Init au chargement
+  // ── Init ──────────────────────────────────────────
+
   function init() {
     const hash = location.hash.replace('#', '');
     if (hash && hash !== 'home') navigate(hash);

@@ -204,7 +204,7 @@ const FicheAction = (() => {
         subject:  d.intitule || 'Sans titre',
         data:     d,
       });
-      EmailService.showResult('Votre client mail s'est ouvert — envoyez le message pour notifier le CPE.', 'send-result');
+      EmailService.showResult('Votre client mail s\'est ouvert — envoyez le message pour notifier le CPE.', 'send-result');
     } else {
       const toast = document.getElementById('send-result');
       if (toast) {
@@ -235,7 +235,7 @@ const FicheAction = (() => {
   function sauvegarderBrouillon() {
     const d = collectData();
     if (!d.intitule && !d.responsable) {
-      alert('Renseignez au moins l'intitulé ou votre nom avant de sauvegarder.');
+      alert("Renseignez au moins l'intitulé ou votre nom avant de sauvegarder.");
       return;
     }
     _currentId = Store.save({
