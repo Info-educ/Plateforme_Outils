@@ -256,5 +256,46 @@ const FicheAction = (() => {
     window.scrollTo(0, 0);
   }
 
-  return { goToStep, generatePDF, generatePDFFromData, sauvegarderBrouillon, autocompleteEmail };
+  // ── Auto-complétion email depuis l'annuaire ────────
+  function autocompleteEmail(val) {
+    // Affiche le bandeau garde-fou dès qu'un email est saisi
+    const banner = document.getElementById('gardeFou-banner');
+    if (banner) banner.style.display = val ? 'block' : 'none';
+
+    // Si l'annuaire est chargé, cherche le nom correspondant
+    if (val && typeof Annuaire !== 'undefined') {
+      const data = Annuaire.getData();
+      const ens  = data?.enseignants?.find(e =>
+        e.email.toLowerCase() === val.toLowerCase()
+      );
+      if (ens) {
+        const nomEl = document.getElementById('responsable');
+        if (nomEl && !nomEl.value) nomEl.value = ens.nom;
+        const hint = document.getElementById('email-hint');
+        if (hint) hint.innerHTML =
+          `✓ Reconnu : <strong>${ens.nom}</strong> — vous serez notifié à chaque étape.`;
+      }
+    }
+  }
+
+  // ── Init appelée par le router à chaque navigation ─
+  function init() {
+    // Remet à zéro l'étape courante
+    currentStep = 1;
+    _currentId  = null;
+
+    // Génère les axes depuis APP_CONFIG
+    renderAxes();
+
+    // Affichage conditionnel "Autres"
+    const typeAutres = document.getElementById('type-autres');
+    if (typeAutres) {
+      typeAutres.addEventListener('change', function() {
+        const f = document.getElementById('type-autres-field');
+        if (f) f.style.display = this.checked ? 'block' : 'none';
+      });
+    }
+  }
+
+  return { goToStep, generatePDF, generatePDFFromData, sauvegarderBrouillon, autocompleteEmail, init };
 })();

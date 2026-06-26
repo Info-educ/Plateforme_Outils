@@ -1,7 +1,10 @@
 // ═══════════════════════════════════════════════════
 // router.js — Navigation entre modules
-// Charge les modules depuis les <template> intégrés
-// dans index.html — fonctionne en file:// et HTTP.
+//
+// Les modules HTML et JS sont intégrés directement
+// dans index.html (templates + scripts inline).
+// Aucun fetch, aucune requête réseau — fonctionne
+// en file:// comme sur GitHub Pages.
 // ═══════════════════════════════════════════════════
 
 const Router = (() => {
@@ -10,9 +13,14 @@ const Router = (() => {
   const contentEl  = () => document.getElementById('app-content');
   const sidebarEls = () => document.querySelectorAll('.sidebar-item[data-module]');
 
-  // ── Navigation vers un module ─────────────────────
+  // Table des fonctions d'init par module
+  const MODULE_INIT = {
+    'fiche-action': () => typeof FicheAction !== 'undefined' && FicheAction.init?.(),
+    'suivi':        () => typeof Suivi       !== 'undefined' && Suivi.init?.(),
+    'annuaire':     () => typeof Annuaire    !== 'undefined' && Annuaire.render?.(),
+  };
 
-  async function navigate(moduleId) {
+  function navigate(moduleId) {
     if (currentModule === moduleId) return;
 
     const mod = APP_CONFIG.modules.find(m => m.id === moduleId);
@@ -23,62 +31,31 @@ const Router = (() => {
       el.classList.toggle('active', el.dataset.module === moduleId);
     });
 
-    // Loader
-    contentEl().innerHTML = `
-      <div class="page-loader">
-        <div class="loader-spinner"></div>
-        <p>Chargement…</p>
-      </div>`;
-
-    // Cherche le template intégré
-    const tpl = document.getElementById(`tpl-${moduleId}`);
-    if (tpl) {
-      // Clone le contenu du template
-      const clone = tpl.content.cloneNode(true);
-      contentEl().innerHTML = '';
-      contentEl().appendChild(clone);
-    } else {
-      // Fallback : tentative fetch (GitHub Pages / serveur HTTP)
-      try {
-        const res  = await fetch(`modules/${moduleId}/form.html`);
-        if (!res.ok) throw new Error(`Module "${moduleId}" introuvable.`);
-        contentEl().innerHTML = await res.text();
-      } catch (err) {
-        contentEl().innerHTML = `
-          <div class="error-box">
-            <p>⚠️ Module <strong>${moduleId}</strong> introuvable.</p>
-            <p style="font-size:12px;margin-top:.5rem;color:var(--slate-mid)">${err.message}</p>
-          </div>`;
-        return;
-      }
+    // Récupère le template du module
+    const tpl = document.getElementById('tpl-' + moduleId);
+    if (!tpl) {
+      contentEl().innerHTML = `
+        <div class="error-box">
+          <p>⚠️ Module <strong>${moduleId}</strong> introuvable dans index.html.</p>
+        </div>`;
+      return;
     }
 
-    // Charge le JS du module
-    await loadModuleScript(moduleId);
+    // Clone et injecte le HTML
+    const clone = document.importNode(tpl.content, true);
+    contentEl().innerHTML = '';
+    contentEl().appendChild(clone);
+
     currentModule = moduleId;
-    history.pushState({ moduleId }, '', `#${moduleId}`);
+    history.pushState({ moduleId }, '', '#' + moduleId);
+
+    // Appelle la fonction d'init du module (si définie)
+    try {
+      MODULE_INIT[moduleId]?.();
+    } catch(e) {
+      console.warn('Init module', moduleId, e);
+    }
   }
-
-  // ── Chargement JS du module ───────────────────────
-
-  async function loadModuleScript(moduleId) {
-    const scriptId = `module-script-${moduleId}`;
-    document.getElementById(scriptId)?.remove();
-
-    return new Promise((resolve) => {
-      const script   = document.createElement('script');
-      script.id      = scriptId;
-      script.src     = `modules/${moduleId}/${moduleId}.js?v=${Date.now()}`;
-      script.onload  = resolve;
-      script.onerror = () => {
-        // Pas de JS externe — le module est peut-être inline
-        resolve();
-      };
-      document.body.appendChild(script);
-    });
-  }
-
-  // ── Dashboard accueil ─────────────────────────────
 
   function showHome() {
     sidebarEls().forEach(el => el.classList.remove('active'));
@@ -117,15 +94,11 @@ const Router = (() => {
     contentEl().innerHTML = html;
   }
 
-  // ── Retour navigateur ─────────────────────────────
-
   window.addEventListener('popstate', () => {
     const hash = location.hash.replace('#', '');
     if (!hash || hash === 'home') showHome();
     else navigate(hash);
   });
-
-  // ── Init ──────────────────────────────────────────
 
   function init() {
     const hash = location.hash.replace('#', '');
