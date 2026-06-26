@@ -54,6 +54,27 @@
         <input type="text" class="field-input" id="responsable" placeholder="Nom et prénom">
       </div>
       <div class="field-group">
+        <label class="field-label" for="email-responsable">Votre adresse mail académique <span class="req">*</span></label>
+        <input type="email" class="field-input" id="email-responsable"
+          placeholder="prenom.nom@ac-versailles.fr"
+          oninput="FicheAction.autocompleteEmail(this.value)">
+        <div class="field-hint" id="email-hint">
+          Vous recevrez un mail à chaque étape du circuit de validation.
+        </div>
+      </div>
+
+      <!-- Bandeau garde-fou : affiché dès que l'enseignant saisit son email -->
+      <div id="gardeFou-banner" style="display:none;background:#fef9c3;border:1px solid #fde047;
+           border-radius:8px;padding:1rem 1.1rem;margin-top:.5rem;font-size:13px;color:#78350f;line-height:1.6">
+        <div style="font-weight:700;font-size:13.5px;margin-bottom:.4rem">
+          ⚠️ Important — À lire avant de soumettre
+        </div>
+        Les notifications que vous recevrez confirment que votre fiche circule dans le circuit de validation numérique.
+        <br><strong>Votre projet n'est officiellement accepté que lorsque vous avez en main le document imprimé
+        avec les signatures manuscrites de tous les validateurs.</strong>
+        <br>Un accord numérique dans la plateforme constitue un accord de principe, non une autorisation définitive.
+      </div>
+      <div class="field-group">
         <label class="field-label" for="classes">Classes ou groupes concernés <span class="req">*</span></label>
         <input type="text" class="field-input" id="classes" placeholder="Ex : 4ème A, 4ème B — si groupe, fournir la liste des élèves">
       </div>
@@ -448,9 +469,16 @@
   <div class="nav-btns">
     <button class="btn btn-secondary" onclick="FicheAction.goToStep(3)">← Retour</button>
     <div class="nav-btns-right">
-      <button class="btn btn-accent"   onclick="FicheAction.generatePDF(false)">⬇ Télécharger le PDF</button>
-      <button class="btn btn-success"  onclick="FicheAction.generatePDF(true)">📧 Envoyer à la direction</button>
+      <button class="btn btn-secondary" onclick="FicheAction.sauvegarderBrouillon()" style="color:var(--slate-mid)">💾 Sauvegarder brouillon</button>
+      <button class="btn btn-accent"    onclick="FicheAction.generatePDF(false)">⬇ Télécharger le PDF</button>
+      <button class="btn btn-success"   onclick="FicheAction.generatePDF(true)">📧 Soumettre &amp; notifier la direction</button>
     </div>
+  </div>
+
+  <div class="warn-box" style="margin-top:1rem;font-size:12.5px">
+    ⚠️ <strong>Rappel :</strong> la soumission numérique déclenche le circuit de validation,
+    mais <strong>votre projet n'est officiellement autorisé qu'une fois le document imprimé signé
+    par tous les validateurs</strong> et remis en main propre.
   </div>
 
   <div class="form-footer">

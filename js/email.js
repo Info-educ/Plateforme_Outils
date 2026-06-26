@@ -1,126 +1,225 @@
 // ═══════════════════════════════════════════════════
-// email.js — Service d'envoi via Formspree
+// email.js — Notifications mailto: circuit de visa
 //
-// POURQUOI PAS EMAILJS POUR LES PIÈCES JOINTES ?
-// EmailJS ne supporte pas les fichiers binaires en
-// pièce jointe depuis le navigateur. Il enverrait
-// du base64 brut dans le corps du mail — illisible.
-//
-// SOLUTION RETENUE : Formspree (gratuit, 50 soumissions/mois)
-// → envoie toutes les données de la fiche par mail
-// → le PDF est téléchargé simultanément côté enseignant
-// → la direction reçoit un mail complet + l'enseignant
-//   joint le PDF téléchargé si nécessaire.
-//
-// POUR ACTIVER :
-// 1. Créer un compte sur https://formspree.io
-// 2. Créer un formulaire → copier l'endpoint (ex: https://formspree.io/f/xpzgkwqr)
-// 3. Renseigner APP_CONFIG.formspree.endpoint dans js/config.js
+// Tous les mails sont courts, directs, factuels.
+// La plateforme est l'outil de traçabilité ;
+// le document officiel reste le PDF imprimé signé.
 // ═══════════════════════════════════════════════════
 
 const EmailService = (() => {
 
-  /**
-   * Envoie les données de la fiche via Formspree
-   * et déclenche simultanément le téléchargement du PDF.
-   *
-   * @param {Object} params
-   * @param {string} params.fromName   — Nom de l'enseignant
-   * @param {string} params.subject    — Intitulé de l'action
-   * @param {string} params.body       — Récapitulatif texte
-   * @param {Object} params.data       — Données complètes du formulaire
-   * @returns {Promise<{ok: boolean, error?: string}>}
-   */
-  async function send({ fromName, subject, body, data }) {
-
-    const endpoint = APP_CONFIG.formspree?.endpoint;
-
-    if (!endpoint || endpoint.startsWith('VOTRE_')) {
-      return {
-        ok: false,
-        error: 'Formspree non configuré. Renseignez APP_CONFIG.formspree.endpoint dans js/config.js.',
-      };
-    }
-
-    // Construction du corps du mail — toutes les données lisibles
-    const details = _buildEmailBody(data);
-
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          _subject:       `[Fiche d'action] ${subject}`,
-          _replyto:       data.emailEnseignant || '',
-          Responsable:    fromName,
-          Intitulé:       subject,
-          Classes:        data.classes || '',
-          'Date départ':  data.dateDepart || '',
-          'Heure départ': data.heureDepart || '',
-          'Date retour':  data.dateRetour || '',
-          Destination:    data.destination || '',
-          Description:    data.description || '',
-          Détails:        details,
-          '--- Note ---':  'Le PDF complet a été téléchargé automatiquement par l\'enseignant.',
-        }),
-      });
-
-      if (res.ok) {
-        return { ok: true };
-      } else {
-        const json = await res.json().catch(() => ({}));
-        return { ok: false, error: json.error || `Erreur HTTP ${res.status}` };
-      }
-    } catch (err) {
-      return { ok: false, error: err.message || 'Erreur réseau' };
-    }
+  function _fmtDate(str) {
+    if (!str) return '—';
+    const [y, m, d] = str.split('-');
+    return `${d}/${m}/${y}`;
   }
 
-  // Construit un résumé texte de toutes les données
-  function _buildEmailBody(d) {
-    const lines = [];
+  // Ouvre le client mail — délai 300ms entre deux appels
+  // pour éviter que le navigateur ne bloque le second
+  let _mailQueue = [];
+  let _mailTimer = null;
 
-    if (d.types?.length)       lines.push(`Type : ${d.types.join(', ')}`);
-    if (d.axes?.length)        lines.push(`Axes projet : ${d.axes.join(' | ')}`);
-    if (d.parcours?.length)    lines.push(`Parcours : ${d.parcours.join(', ')}`);
-    if (d.disciplines?.length) lines.push(`Disciplines : ${d.disciplines.join(', ')}`);
-    if (d.objectifsPeda)       lines.push(`Objectifs pédagogiques : ${d.objectifsPeda}`);
-    if (d.domaines?.length)    lines.push(`Compétences socle : ${d.domaines.join(', ')}`);
-
-    if (d.accompagnateurs?.length) {
-      lines.push('Accompagnateurs :');
-      d.accompagnateurs.forEach(a => lines.push(`  - ${a.nom} | ${a.classes} | ${a.heures}`));
-    }
-    if (d.autresPersonnels) lines.push(`Autres personnels : ${d.autresPersonnels}`);
-    if (d.aed)              lines.push(`AED : ${d.aed}`);
-    if (d.parents)          lines.push(`Parents : ${d.parents}`);
-
-    if (d.budget)           lines.push(`Budget : ${d.budget} €`);
-    if (d.budgetDetail)     lines.push(`Détail budget : ${d.budgetDetail}`);
-    if (d.transports?.length) lines.push(`Transport : ${d.transports.join(', ')}`);
-    if (d.financements?.length) lines.push(`Financements : ${d.financements.join(', ')}`);
-
-    if (d.criteres?.length) {
-      lines.push('Critères évaluation :');
-      d.criteres.forEach((c, i) => lines.push(`  ${i+1}. ${c.libelle} — Cible : ${c.cible}`));
-    }
-
-    return lines.join('\n');
+  function _mailto(to, subject, body) {
+    const url = `mailto:${encodeURIComponent(to)}`
+      + `?subject=${encodeURIComponent(subject)}`
+      + `&body=${encodeURIComponent(body)}`;
+    window.location.href = url;
   }
 
-  /**
-   * Affiche le bandeau résultat dans la page.
-   */
-  function showResult(ok, containerId) {
+  function _infoFiche(d) {
+    return [
+      `Intitulé  : ${d.intitule  || '—'}`,
+      `Classes   : ${d.classes   || '—'}`,
+      `Date      : ${d.dateDepart ? _fmtDate(d.dateDepart) : '—'}`,
+      `Type      : ${d.types?.join(', ') || '—'}`,
+      `Destination : ${d.destination || '—'}`,
+    ].join('\n');
+  }
+
+  function _emailParRole(role) {
+    return APP_CONFIG.validateurs.find(v => v.role === role)?.email || '';
+  }
+
+  // ─────────────────────────────────────────────────
+  // 1. SOUMISSION → 1er validateur (CPE)
+  // ─────────────────────────────────────────────────
+  function notifierSoumission(demande) {
+    const v    = APP_CONFIG.validateurs[0];
+    const d    = demande.data;
+
+    _mailto(
+      v.email,
+      `[Bon pour accord requis] ${d.intitule || 'Fiche d\'action'}`,
+      [
+        `Bonjour,`,
+        ``,
+        `${demande.responsable} a soumis une fiche d'action`,
+        `qui attend votre bon pour accord.`,
+        ``,
+        _infoFiche(d),
+        ``,
+        `→ Connectez-vous à la plateforme (module "Suivi des demandes")`,
+        `  pour donner votre bon pour accord ou refuser la demande.`,
+        ``,
+        `Note : votre accord dans la plateforme ne remplace pas`,
+        `la signature manuscrite sur le document imprimé final.`,
+        ``,
+        `Cordialement,`,
+        `Plateforme numérique — ${APP_CONFIG.etablissement.nom}`,
+      ].join('\n')
+    );
+  }
+
+  // ─────────────────────────────────────────────────
+  // 2. BON POUR ACCORD → validateur suivant + copies
+  // ─────────────────────────────────────────────────
+  function notifierBonPourAccord(demande, indexCourant, indexSuivant) {
+    const vCourant  = APP_CONFIG.validateurs[indexCourant];
+    const vSuivant  = APP_CONFIG.validateurs[indexSuivant];
+    const d         = demande.data;
+
+    // Destinataires : suivant + éventuelles copies configurées
+    const copies = (vCourant.notifierA || [])
+      .map(_emailParRole)
+      .filter(e => e && e !== vSuivant.email);
+
+    const to = [vSuivant.email, ...copies].filter(Boolean).join(',');
+
+    // Historique des accords déjà donnés
+    const accordes = demande.visas
+      .filter(v => v.statut === 'valide')
+      .map(v => `  ✓ Bon pour accord — ${v.label} (${_fmtDate(v.date)})`)
+      .join('\n');
+
+    _mailto(
+      to,
+      `[Bon pour accord requis] ${d.intitule || 'Fiche d\'action'}`,
+      [
+        `Bonjour,`,
+        ``,
+        `La fiche d'action suivante attend votre bon pour accord.`,
+        ``,
+        _infoFiche(d),
+        ``,
+        `Accords déjà recueillis :`,
+        accordes,
+        ``,
+        `→ Connectez-vous à la plateforme (module "Suivi des demandes")`,
+        `  pour donner votre bon pour accord ou refuser la demande.`,
+        ``,
+        `Note : votre accord dans la plateforme ne remplace pas`,
+        `la signature manuscrite sur le document imprimé final.`,
+        ``,
+        `Cordialement,`,
+        `Plateforme numérique — ${APP_CONFIG.etablissement.nom}`,
+      ].join('\n')
+    );
+  }
+
+  // ─────────────────────────────────────────────────
+  // 3. REFUS → tous les validateurs + responsable
+  // ─────────────────────────────────────────────────
+  function notifierRefus(demande, validateur, motif) {
+    const d    = demande.data;
+    const tous = APP_CONFIG.validateurs.map(v => v.email);
+    const to   = [...new Set([...tous, demande.emailResponsable || ''])].filter(Boolean).join(',');
+
+    _mailto(
+      to,
+      `[Refus] ${d.intitule || 'Fiche d\'action'} — ${validateur.label}`,
+      [
+        `Bonjour,`,
+        ``,
+        `La fiche d'action ci-dessous a été refusée.`,
+        ``,
+        _infoFiche(d),
+        ``,
+        `Refusée par : ${validateur.label}`,
+        `Motif       : ${motif || 'Non précisé'}`,
+        ``,
+        `Le responsable de l'action (${demande.responsable})`,
+        `et l'ensemble des parties prenantes sont informés.`,
+        ``,
+        `Cordialement,`,
+        `Plateforme numérique — ${APP_CONFIG.etablissement.nom}`,
+      ].join('\n')
+    );
+  }
+
+  // ─────────────────────────────────────────────────
+  // 4. ACCORD FINAL → secrétariat (impression)
+  //                 + responsable de l'action
+  // ─────────────────────────────────────────────────
+  function notifierAccordFinal(demande) {
+    const d         = demande.data;
+    const secretariat = APP_CONFIG.secretariat;
+    const emailResp   = demande.emailResponsable || '';
+
+    // Liste complète des "Bon pour accord"
+    const accords = demande.visas
+      .filter(v => v.statut === 'valide')
+      .map(v => `  ✓ Bon pour accord — ${v.label} (${_fmtDate(v.date)})`)
+      .join('\n');
+
+    const tous = APP_CONFIG.validateurs.map(v => v.email);
+    const to   = [...new Set([secretariat.email, emailResp, ...tous])].filter(Boolean).join(',');
+
+    _mailto(
+      to,
+      `[À imprimer] Fiche d'action accordée — ${d.intitule || '—'}`,
+      [
+        `Bonjour,`,
+        ``,
+        `La fiche d'action suivante a reçu tous les bons pour accord.`,
+        ``,
+        _infoFiche(d),
+        `Responsable : ${demande.responsable}`,
+        ``,
+        `Bons pour accord recueillis :`,
+        accords,
+        ``,
+        `──────────────────────────────────────────`,
+        `ACTION REQUISE — ${secretariat.label.toUpperCase()} :`,
+        `Merci d'imprimer le document final disponible dans`,
+        `la plateforme (module "Suivi des demandes" → PDF final)`,
+        `et de le transmettre pour signature manuscrite à :`,
+        APP_CONFIG.validateurs.map(v => `  • ${v.label}`).join('\n'),
+        `  • ${demande.responsable} (responsable de l'action)`,
+        `──────────────────────────────────────────`,
+        ``,
+        `Note : les bons pour accord enregistrés dans la plateforme`,
+        `ne remplacent pas les signatures manuscrites sur le document.`,
+        ``,
+        `Cordialement,`,
+        `Plateforme numérique — ${APP_CONFIG.etablissement.nom}`,
+      ].join('\n')
+    );
+  }
+
+  // ─────────────────────────────────────────────────
+  // Bandeau résultat dans la page
+  // ─────────────────────────────────────────────────
+  function showResult(message, containerId) {
     const el = document.getElementById(containerId || 'send-result');
     if (!el) return;
-    el.className = ok ? 'send-result success show' : 'send-result error show';
-    el.innerHTML = ok
-      ? `✅ Données envoyées à <strong>${APP_CONFIG.etablissement.email}</strong>. Le PDF a été téléchargé — joignez-le si nécessaire.`
-      : `⚠️ Envoi impossible (vérifiez la connexion ou la configuration Formspree). Le PDF a bien été téléchargé.`;
+    el.className = 'send-result success show';
+    el.innerHTML = `📬 ${message}`;
     window.scrollTo(0, 0);
-    setTimeout(() => el.classList.remove('show'), 10000);
+    setTimeout(() => el.classList.remove('show'), 12000);
   }
 
-  return { send, showResult };
+  // Compatibilité appel initial depuis fiche-action.js
+  function send({ fromName, subject, data }) {
+    notifierSoumission({ responsable: fromName, data, visas: [] });
+    return { ok: true };
+  }
+
+  return {
+    send,
+    notifierSoumission,
+    notifierBonPourAccord,
+    notifierRefus,
+    notifierAccordFinal,
+    showResult,
+  };
 })();

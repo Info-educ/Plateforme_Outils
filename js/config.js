@@ -1,10 +1,9 @@
 // ═══════════════════════════════════════════════════
-// config.js — Configuration de l'établissement
-// Modifiez uniquement ce fichier pour adapter la
-// plateforme à votre établissement.
+// config.js — Seul fichier à modifier
 // ═══════════════════════════════════════════════════
 
 const APP_CONFIG = {
+
   etablissement: {
     nom:       'Collège Joliot-Curie',
     adresse:   '2bis Avenue de Stalingrad',
@@ -15,23 +14,70 @@ const APP_CONFIG = {
     logo:      'assets/logo.svg',
   },
 
-  // Adresse(s) qui reçoivent les fiches soumises
-  destinataires: [
-    'ce.0921778h@ac-versailles.fr',
+  // ── Circuit de validation ─────────────────────────
+  //
+  // Chaque validateur reçoit un mail quand c'est son
+  // tour et donne son "Bon pour accord" dans la
+  // plateforme. Les signatures restent manuscrites sur
+  // le PDF imprimé — la plateforme sert à la
+  // traçabilité et à la circulation rapide.
+  //
+  // Champs par validateur :
+  //   role     — identifiant interne (ne pas modifier)
+  //   label    — affiché dans l'interface et sur le PDF
+  //   email    — reçoit la notification "c'est votre tour"
+  //   pin      — code d'identification dans la plateforme
+  //              ⚠️  Visible dans le code JS côté navigateur.
+  //              Ne constitue pas une sécurité forte.
+  //              Le document officiel reste le PDF imprimé signé.
+  //
+  // Pour ajouter un validateur : copier un bloc et
+  // l'insérer à la position souhaitée dans le tableau.
+  //
+  // notifierA : liste de rôles qui reçoivent aussi un
+  //             mail de confirmation quand CE validateur
+  //             donne son accord (en plus du suivant).
+  //             Exemple : le chef veut être CC à chaque étape.
+
+  validateurs: [
+    {
+      role:       'cpe',
+      label:      'CPE',
+      email:      'cpe@joliot-curie.fr',
+      pin:        '2001',
+      notifierA:  [],          // personne en copie à cette étape
+    },
+    {
+      role:       'gestionnaire',
+      label:      'Gestionnaire',
+      email:      'gestionnaire@joliot-curie.fr',
+      pin:        '2002',
+      notifierA:  [],
+    },
+    {
+      role:       'chef',
+      label:      "Chef d'établissement",
+      email:      'ce.0921778h@ac-versailles.fr',
+      pin:        '2003',
+      notifierA:  ['cpe', 'gestionnaire'],  // informe CPE et Gestionnaire de la décision finale
+    },
   ],
 
-  // Formspree — service d'envoi de mail gratuit, sans serveur
-  // ACTIVATION (5 minutes) :
-  //   1. Aller sur https://formspree.io → créer un compte gratuit
-  //   2. "New Form" → nommer "Fiche action Joliot" → copier l'endpoint
-  //   3. Remplacer la valeur ci-dessous par votre URL
-  //      Ex : 'https://formspree.io/f/xpzgkwqr'
-  // Plan gratuit : 50 soumissions/mois (largement suffisant)
-  formspree: {
-    endpoint: 'VOTRE_ENDPOINT_FORMSPREE',
+  // ── Secrétariat ───────────────────────────────────
+  // Reçoit le mail final d'impression quand tous les
+  // "Bon pour accord" ont été donnés.
+  secretariat: {
+    label: 'Secrétariat',
+    email: 'secretariat@joliot-curie.fr',
   },
 
-  // Axes du projet d'établissement (modifiables chaque année)
+  // ── Accès vue direction (tableau de bord complet) ─
+  // PIN visible côté navigateur — usage interne uniquement.
+  direction: {
+    pin: '1234',
+  },
+
+  // ── Axes du projet d'établissement ───────────────
   axes: [
     {
       id: 'axe1',
@@ -59,14 +105,16 @@ const APP_CONFIG = {
     },
   ],
 
-  // Modules disponibles — active: true/false pour les afficher
+  // ── Modules ───────────────────────────────────────
   modules: [
-    { id: 'fiche-action',    label: "Fiche d'action",    icon: '📋', active: true,  soon: false, categorie: 'pedagogique'  },
-    { id: 'sortie-scolaire', label: 'Sorties scolaires',  icon: '🚌', active: false, soon: true,  categorie: 'pedagogique'  },
-    { id: 'reservation',     label: 'Réservation salles', icon: '📅', active: false, soon: true,  categorie: 'pedagogique'  },
-    { id: 'travaux',         label: 'Demandes travaux',   icon: '🔧', active: false, soon: true,  categorie: 'administratif'},
-    { id: 'budget',          label: 'Budget / crédits',   icon: '📊', active: false, soon: true,  categorie: 'administratif'},
-    { id: 'absences',        label: 'Demandes absences',  icon: '📝', active: false, soon: true,  categorie: 'rh'           },
-    { id: 'materiel',        label: 'Prêt de matériel',   icon: '🔑', active: false, soon: true,  categorie: 'rh'           },
+    { id: 'annuaire',        label: 'Annuaire',            icon: '👥', active: true,  soon: false, categorie: 'pedagogique'   },
+    { id: 'suivi',           label: 'Suivi des demandes', icon: '📊', active: true,  soon: false, categorie: 'pedagogique'   },
+    { id: 'fiche-action',    label: "Fiche d'action",     icon: '📋', active: true,  soon: false, categorie: 'pedagogique'   },
+    { id: 'sortie-scolaire', label: 'Sorties scolaires',  icon: '🚌', active: false, soon: true,  categorie: 'pedagogique'   },
+    { id: 'reservation',     label: 'Réservation salles', icon: '📅', active: false, soon: true,  categorie: 'pedagogique'   },
+    { id: 'travaux',         label: 'Demandes travaux',   icon: '🔧', active: false, soon: true,  categorie: 'administratif' },
+    { id: 'budget',          label: 'Budget / crédits',   icon: '📊', active: false, soon: true,  categorie: 'administratif' },
+    { id: 'absences',        label: 'Demandes absences',  icon: '📝', active: false, soon: true,  categorie: 'rh'            },
+    { id: 'materiel',        label: 'Prêt de matériel',   icon: '🔑', active: false, soon: true,  categorie: 'rh'            },
   ],
 };

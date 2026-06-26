@@ -7,6 +7,7 @@
 const FicheAction = (() => {
 
   let currentStep = 1;
+  let _currentId    = null; // id Store si reprise ou déjà sauvegardée
 
   // ── Navigation entre étapes ──────────────────────
 
@@ -131,6 +132,7 @@ const FicheAction = (() => {
 
     return {
       types, axes, parcours, disciplines, domaines, financements, transports, supports, publications,
+      emailResponsable: gv('email-responsable'),
       intitule:        gv('intitule'),
       destination:     gv('destination'),
       responsable:     gv('responsable'),
@@ -175,236 +177,84 @@ const FicheAction = (() => {
 
   async function generatePDF(sendMail) {
     const d   = collectData();
-    const pdf = PDFGenerator.createDoc();
-    const { doc } = pdf;
-    const { ML, MW, PAGE_W, PAGE_H } = PDFGenerator;
-    const C = PDFGenerator.C;
 
-    // ── PAGE 1 : Infos générales ──
-    pdf.y = 18;
+    // Génération via le moteur PDF professionnel
+    const pdf = PDFGenerator.genererFicheAction(d, null);
 
-    // Titre
-    doc.setFillColor(...C.blueLight);
-    doc.rect(ML, pdf.y, MW, 18, 'F');
-    doc.setDrawColor(...C.blue);
-    doc.setLineWidth(0.4);
-    doc.rect(ML, pdf.y, MW, 18);
-    doc.setTextColor(...C.blue);
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text("Fiche d'action", PAGE_W / 2, pdf.y + 7, { align: 'center' });
-    doc.setFontSize(11);
-    doc.text("Demande d'autorisation", PAGE_W / 2, pdf.y + 14, { align: 'center' });
-    pdf.y += 22;
-
-    // Badges type d'action
-    if (d.types.length) {
-      doc.setFontSize(8.5);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...C.slate);
-      doc.text("Type d'action :", ML, pdf.y + 4);
-      doc.setFillColor(...C.blue);
-      doc.setTextColor(...C.white);
-      let tx = ML + 42;
-      d.types.forEach(t => {
-        doc.setFontSize(8);
-        const tw = doc.getTextWidth(t) + 6;
-        doc.roundedRect(tx, pdf.y, tw, 6, 1, 1, 'F');
-        doc.text(t, tx + 3, pdf.y + 4.2);
-        tx += tw + 4;
-      });
-      pdf.y += 10;
-    }
-
-    pdf.sectionHeader('INFORMATIONS GÉNÉRALES');
-    pdf.field('Intitulé', d.intitule);
-    pdf.field('Destination', d.destination);
-    pdf.field('Responsable', d.responsable);
-    pdf.field('Classes / groupes', d.classes);
-
-    // Date
-    pdf.checkY(8);
-    doc.setFillColor(...C.blueLight);
-    doc.rect(ML, pdf.y, MW, 7, 'F');
-    doc.setTextColor(...C.blue);
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DATE ET HORAIRE', ML + 3, pdf.y + 5);
-    pdf.y += 9;
-    const dateStr = d.dateDepart
-      ? `Départ : ${PDFGenerator.formatDate(d.dateDepart)} à ${d.heureDepart || '..'}h  —  Retour : ${PDFGenerator.formatDate(d.dateRetour)} à ${d.heureRetour || '..'}h`
-      : 'Non renseigné';
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...C.slate);
-    doc.text(dateStr, ML + 3, pdf.y + 4);
-    pdf.y += 8;
-
-    pdf.multiLine("Description de l'action", d.description);
-
-    // Tableau accompagnateurs
-    if (d.accompagnateurs.length) {
-      pdf.table(
-        ["Nom de l'accompagnateur", 'Classes (cours annulés)', 'Heures'],
-        d.accompagnateurs.map(a => [a.nom, a.classes, a.heures]),
-        [80, 60, 40]
-      );
-    }
-    if (d.autresPersonnels) pdf.field('Autres personnels', d.autresPersonnels);
-    if (d.aed)              pdf.field('AED (CPE)', d.aed);
-    if (d.parents)          pdf.field("Parents d'élèves", d.parents);
-
-    // ── PAGE 2 : Volet pédagogique ──
-    pdf.voletTitle('VOLET PÉDAGOGIQUE');
-    pdf.chips('Axes & objectifs du projet d\'établissement', d.axes);
-    pdf.chips('Type d\'action pédagogique', d.parcours);
-    if (d.disciplines.length) pdf.chips('Disciplines concernées (EPI)', d.disciplines);
-    pdf.multiLine('Objectif(s) pédagogique(s)', d.objectifsPeda);
-
-    pdf.sectionHeader('COMPÉTENCES VISÉES — SOCLE COMMUN');
-    pdf.chips('Domaines', d.domaines);
-
-    if (d.criteres.length) {
-      pdf.sectionHeader("ÉVALUATION DE L'ACTION");
-      pdf.table(
-        ["Critère d'évaluation", 'Valeur cible', 'Valeur mesurée'],
-        d.criteres.map(c => [c.libelle, c.cible, c.mesure]),
-        [70, 55, 55]
-      );
-    }
-
-    pdf.sectionHeader('COMMUNICATION');
-    if (d.crEleves || d.crProfs || d.crAutres) {
-      const cr = [];
-      if (d.crEleves) cr.push('Élèves : ' + d.crEleves);
-      if (d.crProfs)  cr.push('Professeurs : ' + d.crProfs);
-      if (d.crAutres) cr.push('Autres : ' + d.crAutres);
-      pdf.chips('Compte rendu réalisé par', cr);
-    }
-    if (d.supports.length)    pdf.chips('Supports', d.supports);
-    if (d.publications.length) pdf.chips('Publication', d.publications);
-
-    // ── PAGE 3 : Volet financier ──
-    pdf.voletTitle('VOLET FINANCIER');
-    pdf.sectionHeader('DÉPENSES ÉVENTUELLES');
-    if (d.budget)         pdf.field('Budget total', d.budget + ' €');
-    if (d.budgetDetail)   pdf.field('Détail', d.budgetDetail);
-    if (d.transports.length) pdf.field('Transport', d.transports.join(', '));
-
-    if (d.elevesAvecCarte || d.elevesSansCarte) {
-      pdf.table(
-        ['', 'Avec carte de transport', 'Sans carte de transport'],
-        [
-          ["Nombre d'élèves", d.elevesAvecCarte, d.elevesSansCarte],
-          ["Nombre d'accompagnateurs", d.accAvecCarte, d.accSansCarte],
-          ['Total', d.totalAvecCarte, d.totalSansCarte],
-        ],
-        [70, 55, 55]
-      );
-    }
-    if (d.partenaireDevis) pdf.field('Partenaire (devis)', d.partenaireDevis + ' €');
-
-    pdf.sectionHeader('FINANCEMENTS');
-    if (d.financements.length) pdf.chips('Sources', d.financements);
-
-    pdf.checkY(20);
-    pdf.sectionHeader('ASSURANCE');
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...C.slate);
-    doc.text('• Sortie obligatoire : assurance scolaire facultative mais vivement recommandée.', ML + 3, pdf.y + 4);
-    pdf.y += 5.5;
-    doc.text('• Sortie facultative : assurance scolaire obligatoire.', ML + 3, pdf.y + 4);
-    pdf.y += 10;
-
-    // Visas
-    pdf.checkY(50);
-    pdf.sectionHeader('VISAS PRÉALABLES & AUTORISATION DU CHEF D\'ÉTABLISSEMENT');
-    const visaY = pdf.y;
-    const visaW = MW / 3;
-    ['Responsable de l\'action', 'CPE', 'Gestionnaire'].forEach((v, i) => {
-      const vx = ML + i * visaW;
-      doc.setFillColor(...C.blueLight);
-      doc.rect(vx, visaY, visaW, 5.5, 'F');
-      doc.setTextColor(...C.blue);
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'bold');
-      doc.text(v, vx + 2, visaY + 4);
-      doc.setFillColor(...C.white);
-      doc.rect(vx, visaY + 5.5, visaW, 22);
-      doc.setDrawColor(...C.gray);
-      doc.setLineWidth(0.3);
-      doc.rect(vx, visaY, visaW, 27.5);
-    });
-    pdf.y = visaY + 32;
-
-    // Autorisation
-    pdf.checkY(50);
-    pdf.y += 4;
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...C.slate);
-    doc.text("AUTORISATION — Cette action est :", ML, pdf.y + 4);
-    pdf.y += 8;
-    ['Accordée', "Ajournée — encadrement insuffisant", 'Ajournée — passage en CA obligatoire',
-      'Ajournée — manque un ou des visas', 'Ajournée — autre motif', 'Refusée — motif(s) :'].forEach(txt => {
-      pdf.checkY(6);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.text('□  ' + txt, ML + 4, pdf.y + 4);
-      pdf.y += 6;
+    // Sauvegarde dans le Store
+    _currentId = Store.save({
+      id:               _currentId || undefined,
+      module:           'fiche-action',
+      emailResponsable: d.emailResponsable || '',
+      statut:           sendMail ? 'en_attente' : 'brouillon',
+      responsable:      d.responsable || '',
+      intitule:         d.intitule || '',
+      dateAction:       d.dateDepart || '',
+      data:             d,
     });
 
-    pdf.y += 6;
-    doc.setFillColor(...C.blueLight);
-    doc.rect(ML + MW - 60, pdf.y, 60, 25, 'F');
-    doc.setDrawColor(...C.blue);
-    doc.setLineWidth(0.4);
-    doc.rect(ML + MW - 60, pdf.y, 60, 25);
-    doc.setTextColor(...C.blue);
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'bold');
-    doc.text("Le Chef d'Établissement", ML + MW - 30, pdf.y + 5, { align: 'center' });
-
-    // Numéros de pages
-    pdf.addPageNumbers(`Fiche d'action — ${d.intitule || 'Sans titre'} — ${d.responsable || ''}`);
-
-    // Sauvegarde
+    // Téléchargement
     const filename = PDFGenerator.makeFilename('fiche_action', d.intitule);
     pdf.save(filename);
 
-    // Envoi mail via Formspree (données) + PDF téléchargé localement
+    // Notification mail
     if (sendMail) {
       const result = await EmailService.send({
         fromName: d.responsable || 'Enseignant',
         subject:  d.intitule || 'Sans titre',
-        body:     `Responsable : ${d.responsable}\nClasses : ${d.classes}\nDate : ${PDFGenerator.formatDate(d.dateDepart)}`,
         data:     d,
       });
-      EmailService.showResult(result.ok, 'send-result');
+      EmailService.showResult('Votre client mail s'est ouvert — envoyez le message pour notifier le CPE.', 'send-result');
+    } else {
+      const toast = document.getElementById('send-result');
+      if (toast) {
+        toast.className = 'send-result success show';
+        toast.innerHTML = '💾 Brouillon sauvegardé — retrouvez-le dans <strong>Suivi des demandes</strong>.';
+        setTimeout(() => toast.classList.remove('show'), 5000);
+      }
     }
 
     window.scrollTo(0, 0);
   }
 
-  // ── Initialisation du module ─────────────────────
 
-  function init() {
-    // Génère les axes depuis APP_CONFIG
-    renderAxes();
-
-    // Affichage conditionnel du champ "Autres"
-    const typeAutres = document.getElementById('type-autres');
-    if (typeAutres) {
-      typeAutres.addEventListener('change', function () {
-        document.getElementById('type-autres-field').style.display = this.checked ? 'block' : 'none';
-      });
+  // Génère un PDF depuis des données existantes (appelé par Suivi.regenererPDF)
+  async function generatePDFFromData(data) {
+    // Remplit temporairement les champs si le module est actif
+    // Sinon génère directement depuis les données brutes
+    if (typeof collectData === 'function') {
+      await generatePDF(false);
+    } else {
+      // Génération directe sans formulaire chargé
+      // (le module est appelé depuis Suivi sans être monté)
+      console.warn('generatePDFFromData appelé hors contexte formulaire — naviguez vers Fiche action.');
     }
   }
 
-  // Auto-init dès que le module est injecté dans le DOM
-  document.addEventListener('DOMContentLoaded', init);
-  // Si le module est chargé dynamiquement (après DOMContentLoaded)
-  if (document.readyState !== 'loading') init();
+  // Sauvegarde le brouillon courant sans générer de PDF
+  function sauvegarderBrouillon() {
+    const d = collectData();
+    if (!d.intitule && !d.responsable) {
+      alert('Renseignez au moins l'intitulé ou votre nom avant de sauvegarder.');
+      return;
+    }
+    _currentId = Store.save({
+      id:          _currentId || undefined,
+      module:      'fiche-action',
+      statut:      'brouillon',
+      responsable: d.responsable || '',
+      intitule:    d.intitule || '',
+      dateAction:  d.dateDepart || '',
+      data:        d,
+    });
+    const toast = document.getElementById('send-result');
+    if (toast) {
+      toast.className = 'send-result success show';
+      toast.innerHTML = '💾 Brouillon sauvegardé — retrouvez-le dans <strong>Suivi des demandes</strong>.';
+      setTimeout(() => toast.classList.remove('show'), 5000);
+    }
+    window.scrollTo(0, 0);
+  }
 
-  return { goToStep, generatePDF };
+  return { goToStep, generatePDF, generatePDFFromData, sauvegarderBrouillon, autocompleteEmail };
 })();

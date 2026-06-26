@@ -1,0 +1,11 @@
+# Collège Joliot-Curie — Espace interne
+# Interdit à tous les robots d'indexation
+
+User-agent: *
+Disallow: /
+
+User-agent: Googlebot
+Disallow: /
+
+User-agent: Bingbot
+Disallow: /
